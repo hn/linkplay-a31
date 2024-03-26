@@ -45,7 +45,7 @@ a (MediaTek SDK) patched Linux kernel 2.6.36 and
 a weird combination of proprietary and OSS/GNU operating system components.
 
 Other users thankfully have comprehensivly analysed the system and vendor application layer:
-
+[Crymeiriver started reverse engineering some years ago](https://github.com/Crymeiriver/LS150),
 
 ### Linux kernel support
 

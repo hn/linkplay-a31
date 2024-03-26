@@ -46,6 +46,7 @@ a weird combination of proprietary and OSS/GNU operating system components.
 
 Other users thankfully have comprehensivly analysed the system and vendor application layer:
 [Crymeiriver started reverse engineering some years ago](https://github.com/Crymeiriver/LS150),
+[Jan21493 added a ton of more information](https://github.com/Jan21493/Linkplay) and
 
 ### Linux kernel support
 

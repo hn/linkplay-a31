@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2014 OpenWrt.org
+
+START=99
+BIN=/usr/sbin/linkplay-emu
+PID=/var/run/linkplay-emu.pid
+SSD=start-stop-daemon
+
+start() {
+        $SSD -p $PID -S -b -m -x $BIN
+}
+	
+stop() {
+        $SSD -p $PID -K -s SIGINT
+}

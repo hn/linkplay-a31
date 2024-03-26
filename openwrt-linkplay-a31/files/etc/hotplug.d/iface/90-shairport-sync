@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Shairport-sync needs to be restarted when the network changes.
+# Especially if the WiFi connection is not yet established during
+# system start, Shairport-sync will not start up at all because the
+# default (multicast) route is missing.
+#
+
+[ "$ACTION" = ifup -o "$ACTION" = ifupdate ] || exit 0
+[ "$ACTION" = ifupdate -a -z "$IFUPDATE_ADDRESSES" -a -z "$IFUPDATE_DATA" ] && exit 0
+
+logger -t firewall "Reloading shairport-sync due to $ACTION of $INTERFACE ($DEVICE)"
+[ -x /etc/init.d/shairport-sync ] && service shairport-sync restart
+

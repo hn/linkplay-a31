@@ -1,0 +1,34 @@
+CONFIG_TARGET_ramips=y
+CONFIG_TARGET_ramips_mt76x8=y
+CONFIG_TARGET_ramips_mt76x8_DEVICE_linkplay_a31=y
+CONFIG_BUSYBOX_CUSTOM=y
+CONFIG_BUSYBOX_CONFIG_I2CDETECT=y
+CONFIG_BUSYBOX_CONFIG_I2CGET=y
+CONFIG_BUSYBOX_CONFIG_STTY=y
+CONFIG_BUSYBOX_CONFIG_UUDECODE=y
+CONFIG_BUSYBOX_CONFIG_UUENCODE=y
+CONFIG_PACKAGE_alsa-lib=y
+CONFIG_PACKAGE_alsa-ucm-conf=y
+CONFIG_PACKAGE_alsa-utils=y
+# CONFIG_PACKAGE_dnsmasq is not set
+# CONFIG_PACKAGE_kmod-leds-gpio is not set
+# CONFIG_PACKAGE_kmod-lib-crc-ccitt is not set
+# CONFIG_PACKAGE_kmod-ppp is not set
+CONFIG_PACKAGE_kmod-sound-dummy=y
+CONFIG_PACKAGE_libconfig=y
+CONFIG_PACKAGE_libdaemon=y
+CONFIG_PACKAGE_libltdl=y
+CONFIG_PACKAGE_libmpg123=y
+CONFIG_PACKAGE_libncurses=y
+CONFIG_PACKAGE_libout123=y
+CONFIG_PACKAGE_libpopt=y
+CONFIG_PACKAGE_librt=y
+CONFIG_PACKAGE_libsyn123=y
+CONFIG_PACKAGE_linkplay-emu=y
+CONFIG_PACKAGE_mpg123=y
+CONFIG_PACKAGE_nano=y
+# CONFIG_PACKAGE_odhcpd-ipv6only is not set
+# CONFIG_PACKAGE_ppp is not set
+CONFIG_PACKAGE_shairport-sync-mini=y
+CONFIG_PACKAGE_terminfo=y
+CONFIG_PACKAGE_zlib=y

@@ -1,0 +1,27 @@
+#!/usr/bin/kermit
+#
+# Prerequisite: apt-get install ckermit
+#
+
+SET port /dev/ttyUSB0
+SET speed 57600
+SET carrier-watch off
+SET flow-control none
+SET prefixing all
+
+ECHO "Waiting 180s for boot sequence."
+
+INPUT 180 "Please choose the operation"
+OUTPUT "\{27}\{27}\{27}1"
+
+INPUT 5 "MT7628 # "
+ECHO "Loading initramfs-kernel image"
+LINEOUT "loadb 0x81000000"
+SEND bin/targets/ramips/mt76x8/openwrt-ramips-mt76x8-linkplay_a31-initramfs-kernel.bin
+
+INPUT 5 "MT7628 # "
+ECHO "Starting kernel"
+PAUSE 1
+LINEOUT "bootm 0x81000000"
+CONNECT
+

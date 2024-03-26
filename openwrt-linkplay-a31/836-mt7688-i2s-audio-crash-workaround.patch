@@ -1,0 +1,17 @@
+Workaround to prevent the MT7688 from crashing the entire system
+when I2S audio playback is stopped manually.
+
+Copied from:
+ https://forum.openwrt.org/t/mt7688-stopping-audio-cases-crash/171405
+
+--- a/sound/soc/ralink/ralink-i2s.c
++++ b/sound/soc/ralink/ralink-i2s.c
+@@ -428,7 +428,7 @@
+ 	case SNDRV_PCM_TRIGGER_STOP:
+ 	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+-		val = 0;
++		val = mask; /* Workaround: skip disabling the i2s transmitter */
+ 		break;
+ 	default:
+ 		return -EINVAL;

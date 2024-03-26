@@ -1,0 +1,19 @@
+--- a/target/linux/ramips/image/mt76x8.mk
++++ b/target/linux/ramips/image/mt76x8.mk
+@@ -356,6 +356,16 @@ define Device/kroks_kndrt31r19
+ endef
+ TARGET_DEVICES += kroks_kndrt31r19
+ 
++define Device/linkplay_a31
++  IMAGE_SIZE := 7872k
++  DEVICE_VENDOR := Linkplay
++  DEVICE_MODEL := A31
++  DEVICE_VARIANT := V40
++  DEVICE_PACKAGES:= kmod-usb2 kmod-usb-ohci uboot-envtools \
++	kmod-i2c-mt7628 kmod-sound-soc-spdif kmod-sound-core kmod-sound-mt7620
++endef
++TARGET_DEVICES += linkplay_a31
++
+ define Device/linksys_e5400
+   IMAGE_SIZE := 16000k
+   DEVICE_VENDOR := Linksys

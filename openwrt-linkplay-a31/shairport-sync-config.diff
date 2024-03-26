@@ -1,0 +1,24 @@
+--- a/feeds/packages/sound/shairport-sync/files/shairport-sync.config
++++ b/feeds/packages/sound/shairport-sync/files/shairport-sync.config
+@@ -7,10 +7,10 @@
+ 
+ # Use OpenWrt UCI config
+ config shairport-sync 'shairport_sync'
+-	option enabled '0'
++	option enabled '1'
+ 	option respawn '1'
+ 	# General
+-	option name 'Shairport-Sync-%v-%h'
++	option name 'Linkplay-A31'
+ 	option password ''
+ 	option interpolation '' # basic/soxr
+ 	option output_backend '' # alsa/pipe/stdout/ao/dummy/pulse/sndio
+@@ -42,7 +42,7 @@
+ 	option sesctl_session_timeout '' # 120
+ 	# ALSA
+ 	option alsa_output_device '' # default
+-	option alsa_mixer_control_name '' # PCM
++	option alsa_mixer_control_name 'Master' # PCM
+ 	option alsa_mixer_device '' # default
+ 	option alsa_latency_offset '' # 0
+ 	option alsa_buffer_length '' # 6615

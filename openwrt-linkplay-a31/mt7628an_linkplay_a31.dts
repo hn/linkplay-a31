@@ -1,0 +1,184 @@
+#include "mt7628an.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	/*
+	 * (C) 2024 Hajo Noerenberg
+	 * 
+	 * https://github.com/hn/linkplay-a31
+	 * http://www.noerenberg.de/
+	 *
+	 */
+
+	compatible = "linkplay,a31", "mediatek,mt7628an-soc";
+	model = "Linkplay A31";
+
+	chosen {
+		bootargs = "console=ttyS1,57600";
+	};
+
+	aliases {
+		serial0 = &uart1;
+		serial1 = &uartlite;
+	};
+
+	/*
+	 * This configures the A31 as an I2S slave using a generic S/PDIF transmitter.
+	 * For I2S master configuration, you'll need to add a real codec and
+	 * extend the settings below (see A31 manual section 2.3).
+	 */
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "Audio-I2S";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink0_master>;
+		simple-audio-card,frame-master = <&dailink0_master>;
+
+		simple-audio-card,cpu {
+			sound-dai = <&i2s>;
+			// dai-tdm-slot-num = <2>;
+			// dai-tdm-slot-width = <32>;
+		};
+
+		dailink0_master: simple-audio-card,codec {
+			sound-dai = <&codec_spdif_out>;
+		};
+	};
+
+	codec_spdif_out: spdif-transmitter {
+		#address-cells = <0>;
+		#size-cells = <0>;
+		#sound-dai-cells = <0>;
+		compatible = "linux,spdif-dit";
+		status = "okay";
+	};
+
+};
+
+&state_default {
+
+	/* PCB GPIOs 1-5 are wired to MCU pins 14-18 => Linux 494-498 */
+
+	pwm0 {
+		groups = "pwm0";
+		function = "gpio";
+	};
+
+	spis {
+		groups = "spis";
+		function = "gpio";
+	};
+
+};
+
+&spi0 {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi_pins>, <&spi_cs1_pins>;
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <40000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+				read-only;
+			};
+
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+			};
+
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+				read-only;
+			};
+
+			partition@50000 {
+				label = "bkKernel";
+				reg = <0x50000 0x200000>;
+				read-only;
+			};
+
+			/*
+			 * Original firmware has a 'firmware' partition with
+			 * size 0x730000 at 0x250000, a jffs2 'user' partitition
+			 * with size 0x80000 at 0x980000 and a jffs2 'user2'
+			 * partition with size 0x600000 at 0xa00000.
+			 * Dropping both user partitions in favour of a
+			 * bigger 'firmware' partition.
+			 */
+
+			partition@250000 {
+				compatible = "denx,uimage";
+				label = "firmware";
+				reg = <0x250000 0xdb0000>;
+			};
+		};
+	};
+
+	spidev@1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "linux,spidev";
+		reg = <1>;
+		spi-max-frequency = <40000000>;
+	};
+};
+
+&i2s {
+	#sound-dai-cells = <0>;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2s_pins>, <&refclk_pins>;
+};
+
+&i2c {
+	status = "okay";
+};
+
+&gdma {
+	status = "okay";
+};
+
+&uart1 {
+	status = "okay";
+};
+
+&pwm {
+	status = "okay";
+};
+
+&ethernet {
+	nvmem-cells = <&macaddr_factory_2e>;
+	nvmem-cell-names = "mac-address";
+};
+
+&wmac {
+	status = "okay";
+
+	mediatek,mtd-eeprom = <&factory 0x0>;
+};
+
+&factory {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_factory_2e: macaddr@2e {
+		reg = <0x2e 0x6>;
+	};
+};

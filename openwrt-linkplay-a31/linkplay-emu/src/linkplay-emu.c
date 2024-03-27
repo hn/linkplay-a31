@@ -219,7 +219,7 @@ int main() {
 		}
 
 		if (!pcm_ismuted
-		    && (time(NULL) - pcm_lastplaying > AXX_IDLETIME)) {
+		    && ((time(NULL) - pcm_lastplaying) > AXX_IDLETIME)) {
 			/* Mute DAC */
 			write_serial(serial_fd, "AXX+PLY+000\n");
 			write_serial(serial_fd, "AXX+MUT+001\n");
@@ -233,7 +233,7 @@ int main() {
 			pcm_ismuted = 0;
 		}
 
-		if (!pcm_ismuted && pcm_lastvol != vol_cal) {
+		if (!pcm_ismuted && (pcm_lastvol != vol_cal)) {
 			/* Set DAC volume */
 			char out[12 + 1];
 			sprintf(out, "AXX+VOL+%03d\n", vol_cal);

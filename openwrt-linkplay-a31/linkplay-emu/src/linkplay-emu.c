@@ -31,7 +31,9 @@
 #define MIX_NAME	"Master"
 #define MIX_INDEX	0
 
-#define AXX_MAXVOL	30
+#define AXX_VOLMAX	80
+#define AXX_VOLOFF	3
+#define AXX_VOLPOW	200
 #define AXX_IDLETIME	10
 #define AXX_PORT	"/dev/ttyS0"
 
@@ -198,9 +200,14 @@ int main() {
 				snd_strerror(err));
 			goto fail_pif;
 		}
-
-		vol_cal =
-		    AXX_MAXVOL * (vol_now - vol_min) / (vol_max - vol_min);
+#ifdef AXX_VOLPOW
+		vol_cal = AXX_VOLOFF +
+		    (AXX_VOLMAX - AXX_VOLOFF) *
+		    (pow(AXX_VOLPOW, (float)(vol_now - vol_min) / (vol_max - vol_min)) - 1) / (pow(AXX_VOLPOW, 1) - 1);
+#else
+		vol_cal = AXX_VOLOFF +
+		    (AXX_VOLMAX - AXX_VOLOFF) * (vol_now - vol_min) / (vol_max - vol_min);
+#endif /* AXX_VOLPOW */
 
 		err = snd_ctl_pcm_info(ctl, pcm_info);
 		if (err < 0) {

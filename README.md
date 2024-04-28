@@ -153,6 +153,19 @@ flash the image from within the running system with
 mtd -r write /tmp/openwrt-ramips-mt76x8-linkplay_a31-squashfs-sysupgrade.bin firmware
 ```
 
+Make sure that the time of the newly installed system is correct, otherwise you won't be able to download HTTPS content due to certificate validity problems.
+
+#### Additional software
+
+The flash space of the A31 module is extremely limited.
+Therefore the [OpenWrt config](openwrt-linkplay-a31/defconfig) includes only a minimal set of software packages (e.g. no web interface).
+After installation, you (only) have roughly 6 MB of free space available.
+
+While it is possible to install additional software, many packages (e.g. [gmrender-resurrect](https://github.com/hosac/openwrt-feed-gmediarender), OwnTone, ...) depend on Gstreamer and FFmpeg libraries, which are way to big to be installed on the module.
+
+I suggest to install [mpd-mini](https://openwrt.org/packages/pkgdata/mpd-mini) (config [diff here](openwrt-linkplay-a31/mpd-config.diff), and you have to add user 'mpd' to the 'audio' group).
+HTTPS-streams seem to overload the cpu and tend to be unstable.
+
 
 ### Amplifier control app
 

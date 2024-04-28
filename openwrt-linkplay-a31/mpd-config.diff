@@ -1,0 +1,51 @@
+--- a/mpd.conf
++++ b/mpd.conf
+@@ -17,7 +17,7 @@
+ # playlist files not created by the server but only if they are in the MPD
+ # format. This setting defaults to playlist saving being disabled.
+ #
+-#playlist_directory		"~/.mpd/playlists"
++playlist_directory		"/tmp/mpd-playlists"
+ #
+ # This setting sets the location of the MPD database. This file is used to
+ # load the database at server start up and store the database while the
+@@ -150,12 +150,12 @@
+ # If this setting is set to "yes", service information will be published with
+ # Zeroconf / Avahi.
+ #
+-#zeroconf_enabled		"yes"
++zeroconf_enabled		"yes"
+ #
+ # The argument to this setting will be the Zeroconf / Avahi unique name for
+ # this MPD server on the network. %h will be replaced with the hostname.
+ #
+-#zeroconf_name			"Music Player @ %h"
++zeroconf_name			"Music Player @ %h"
+ #
+ ###############################################################################
+ 
+@@ -215,15 +215,15 @@
+ #
+ # An example of an ALSA output:
+ #
+-#audio_output {
+-#	type		"alsa"
+-#	name		"My ALSA Device"
+-##	device		"hw:0,0"	# optional
+-##	mixer_type      "hardware"	# optional
+-##	mixer_device	"default"	# optional
+-##	mixer_control	"PCM"		# optional
+-##	mixer_index	"0"		# optional
+-#}
++audio_output {
++	type		"alsa"
++	name		"External DAC"
++	device		"default"	# optional
++	mixer_type      "hardware"	# optional
++	mixer_device	"default"	# optional
++	mixer_control	"Master"	# optional
++	mixer_index	"0"		# optional
++}
+ #
+ # An example of an OSS output:
+ #

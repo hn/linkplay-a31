@@ -197,10 +197,58 @@ emulates three serial commands and does not daemonize itself,
 but hey, it works :)
 
 
-## Misc
+# C.AP8064.05 amplifier board
 
-- The DYON Area L WiFi speaker plays a particularly annoying
-  welcome message ("Geniesse WiFi Musik" in german) when you
-  switch to the Airplay source (`AXX+PLM+001`).
-  This message is _not_ stored on the A31 module but on the amp board.
+The DYON Area L WiFi speaker plays a particularly annoying
+welcome message ("Geniesse WiFi Musik" in german) when you
+switch to the Airplay source (`AXX+PLM+001`).
+This message is _not_ stored on the A31 module but on the amp board.
+
+Since it was not possible to stop this dumb behavior via serial commands,
+a more stringent solution had to be found.
+
+The firmware of the MVsilicon AP8064 MCU is stored in a 4MB GD25Q32 SPI NOR
+flash which can be [read with a SOIC-8 clip](https://www.flashrom.org) like this:
+
+![AP8064 SPI NOR flash SOIC8](c-ap8064-05-amp-pcb-soic8.jpg)
+
+Haven't looked closely, but the dump doesn't seem to contain a known
+kernel or file system, everything appears to be proprietary.
+
+By examining the dump more carefully one sees that there is some
+kind of 'table of contents' represented by text-offset-length values
+at flash position `0x100000`:
+
+```
+ToC 01, Signature: WIFI, Offset: 100bfd, Length:  32f8
+ToC 02, Signature: USB_, Offset: 103ef5, Length:  2c9c
+ToC 03, Signature: WTCN, Offset: 106b91, Length:  2e9c
+ToC 04, Signature: AUX_, Offset: 109a2d, Length:  316d
+ToC 05, Signature: CARD, Offset: 10cb9a, Length:  2de1
+ToC 06, Signature: FMRD, Offset: 10f97b, Length:  2442
+ToC 07, Signature: CNND, Offset: 111dbd, Length:  1d07
+...
+ToC 29, Signature: 3DFF, Offset: 13fd41, Length:  b36c
+ToC 30, Signature: WIfi, Offset: 14b0ad, Length: 1631a
+ToC 31, Signature: Aux_, Offset: 1613c7, Length: 15f05
+ToC 32, Signature: CNnd, Offset: 1772cc, Length:  c800
+ToC 33, Signature: CNlt, Offset: 183acc, Length: 1094e
+ToC 34, Signature: LWbt, Offset: 19441a, Length: 22b1a
+ToC 35, Signature: CHrg, Offset: 1b6f34, Length:  b398
+ToC 36, Signature: PWou, Offset: 1c22cc, Length: 121cc
+ToC 37, Signature: WTcn, Offset: 1d4498, Length: 17399
+ToC 38, Signature: FMup, Offset: 1eb831, Length:  af83
+```
+
+If you extract the data, you exactly get 38 valid MP3 files with
+audio data for all types of events ('Charging', 'Connection lost' etc.).
+
+The annoying WiFi connection message is stored in ToC 30 (Signature `WIfi`) for
+german audio and in ToC 01 (Signature `WIFI`) for english audio.
+
+The fix is to change the `WIfi` signature to something meaningless (`FOOO`)
+in the ToC and flash the modified image file back to the flash chip
+(only 4 bytes changed compared to the vendor image).
+The amplifier driver then will not be able to find the audio
+data and ... you will _really_ be able to enjoy WiFi music _undisturbed_ :)
 

@@ -86,7 +86,7 @@ Then proceed like this:
 git clone https://github.com/hn/linkplay-a31.git
 git clone https://git.openwrt.org/openwrt/openwrt.git
 cd openwrt
-git checkout v23.05.2
+git checkout v23.05.3
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 ../linkplay-a31/openwrt-linkplay-a31/prepare-openwrt-a31.sh

@@ -9,6 +9,6 @@
 [ "$ACTION" = ifup -o "$ACTION" = ifupdate ] || exit 0
 [ "$ACTION" = ifupdate -a -z "$IFUPDATE_ADDRESSES" -a -z "$IFUPDATE_DATA" ] && exit 0
 
-logger -t firewall "Reloading shairport-sync due to $ACTION of $INTERFACE ($DEVICE)"
+logger -t shairport-sync "Reloading shairport-sync due to $ACTION of $INTERFACE ($DEVICE)"
 [ -x /etc/init.d/shairport-sync ] && service shairport-sync restart
 

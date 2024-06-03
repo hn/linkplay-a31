@@ -155,6 +155,12 @@ mtd -r write /tmp/openwrt-ramips-mt76x8-linkplay_a31-squashfs-sysupgrade.bin fir
 
 Make sure that the time of the newly installed system is correct, otherwise you won't be able to download HTTPS content due to certificate validity problems.
 
+:bulb: The system sets up a [rescue access point](openwrt-linkplay-a31/files/etc/init.d/rescue-ap)
+if there is no WiFi connectivity (e.g. wrong credentials) three minutes after booting.
+The SSID is `LINKPLAY` and [passphrase](openwrt-linkplay-a31/files/etc/hostapd-rescue.conf) is `A31A31A31`.
+IP address for SSH connection is `192.168.31.1` (no DHCP server, you have to set IP manually on your client).
+After 10 minutes of inactivity the rescue access point will be shut down (sytem reboot).
+
 #### Additional software
 
 The flash space of the A31 module is extremely limited.

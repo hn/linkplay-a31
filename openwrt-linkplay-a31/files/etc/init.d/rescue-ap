@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+rescueap_watchdog() {
+
+	logger -t rescue-ap "Delaying check for network connectivity"
+	sleep 3m
+
+	logger -t rescue-ap "Checking for network connectivity (default route)"
+
+	route -n | grep -q ^0.0.0.0
+	if [ $? -eq 0 ]; then
+		logger -t rescue-ap "Network connectivity is ok, exiting"
+		/etc/init.d/sysntpd restart
+		exit 0
+	fi
+
+	logger -t rescue-ap "No network connectivity, enabling rescue access point"
+
+	/etc/init.d/network stop
+	[ -x /etc/init.d/firewall ] && /etc/init.d/firewall stop
+	iw phy phy0 interface add phy0-ap0 type __ap
+	ip addr add 192.168.31.1/24 dev phy0-ap0
+	ujail -t 5 -n hostapd -U network -G network -C /etc/capabilities/wpad.json -c -- \
+		/usr/sbin/hostapd -B -s -g /var/run/hostapd/global /etc/hostapd-rescue.conf
+	logger -t rescue-ap "Successfully setup rescue access point"
+
+	sleep 10m
+	if [ -f /tmp/rescue-ap ]; then
+		logger -t rescue-ap "Admin login detected, exiting"
+		exit 0
+	fi
+
+	logger -t rescue-ap "Timeout, rebooting system"
+	reboot
+}
+
+boot() {
+	rescueap_watchdog &
+}

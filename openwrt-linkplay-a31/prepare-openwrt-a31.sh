@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# (C) 2024 Hajo Noerenberg
+#
+# http://www.noerenberg.de/
+# https://github.com/hn/linkplay-a31
+#
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 

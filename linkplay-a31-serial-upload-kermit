@@ -1,5 +1,10 @@
 #!/usr/bin/kermit
 #
+# (C) 2024 Hajo Noerenberg
+#
+# http://www.noerenberg.de/
+# https://github.com/hn/linkplay-a31
+#
 # Prerequisite: apt-get install ckermit
 #
 

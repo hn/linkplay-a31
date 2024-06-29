@@ -4,7 +4,7 @@
 
 The [Linkplay A31](https://www.linkplay.com/modules) is a WiFi audio streaming module
 (System on Module, SoM) developed to be used in wireless speakers and wireless audio systems.
-The module seems to be sold under different names
+The module seems to be sold under [many different names](https://github.com/nagyrobi/home-assistant-custom-components-linkplay#about-linkplay)
 ([Rakoit](https://www.rakoit.com/product/wifi-module-a31/), Wiimu).
 
 Because the module itself does not have a DAC and amplifier,

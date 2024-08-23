@@ -9,7 +9,7 @@ The module seems to be sold under [many different names](https://github.com/nagy
 
 Because the module itself does not have a DAC and amplifier,
 it is typically connected to another board in many consumer products.
-For example, in the [DYON Area L WiFi speaker](https://www.dyon.eu/portfolio/dyon-area-lautsprecher/)
+For example, in the [DYON Area L (Serie 2) WiFi speaker](https://www.dyon.eu/portfolio/dyon-area-lautsprecher/)
 it is connected to an C.AP8064.05 amplifier board
 ([PCB back](c-ap8064-05-amp-pcb-back.jpg), [PCB front with serial cable attached to the A31](c-ap8064-05-amp-pcb-front.jpg),
 [MVsilicon AP8064 MCU datasheet](https://www.diyaudio.com/community/attachments/ap8064_datasheet_v1-2-pdf.1145388/)).
@@ -203,9 +203,20 @@ emulates three serial commands and does not daemonize itself,
 but hey, it works :)
 
 
-# C.AP8064.05 amplifier board
+# Dyon Area L WiFi speaker
 
-The DYON Area L WiFi speaker plays a particularly annoying
+There are (at least) two different hardware revisions of this speaker:
+
+## Series 1: C.8064.01 amplifier board
+
+Series 1 has a rectangular label (8x5 cm) and must be opened from bottom. It consists of a WiiMu A21 WiFi module (MT7620A MCU) and a C.8064.01 amp board.
+No research has yet been undertaken with this model.
+
+## Series 2: C.AP8064.05 amplifier board
+
+Series 2 has a square label (8x8 cm, with "Serie 2" printed on it) and must be opened from behind, the screws are hidden behind the edges of the label.
+
+The WiFi speaker plays a particularly annoying
 welcome message ("Geniesse WiFi Musik" in german) when you
 switch to the Airplay source (`AXX+PLM+001`).
 This message is _not_ stored on the A31 module but on the amp board.

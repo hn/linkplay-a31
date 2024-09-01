@@ -35,6 +35,10 @@ The module has an undocumented serial port used as Linux console ttyS1
 [full PCB](c-ap8064-05-amp-pcb-front.jpg)).
 The serial port works with 5V (not 3V3) and 57600 8N1.
 
+:warning: Warning: There are probably [multiple hardware versions](https://github.com/hn/linkplay-a31/issues/4) of the Linkplay A31 module
+(which is weird because they are all labeled "V04"). The versions seem to differ in the voltage used at the serial port (3v3 vs. 5v) and
+even the MCU seems to be slightly different (MT7628  vs. MT7688). This needs to be investigated further.
+
 
 ## Software
 

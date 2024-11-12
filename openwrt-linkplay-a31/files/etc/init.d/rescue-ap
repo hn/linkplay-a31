@@ -43,5 +43,10 @@ rescueap_watchdog() {
 }
 
 boot() {
-	rescueap_watchdog &
+	mount | grep -q squashfs
+	if [ $? -eq 0 ]; then
+		rescueap_watchdog &
+	else
+		logger -t rescue-ap "No rescue access point for system booted from RAM"
+	fi
 }

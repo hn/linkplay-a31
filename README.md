@@ -268,9 +268,9 @@ An obvious approach would be to replace the jump table call at offset
 Unfortunately, the jump table does not contain an entry for `serial_init`,
 as this function is intentionally not used by the manufacturer's firmware.
 But fortunately there is an entry for `serial_setbrg` in the jump table at offset `0x30c`,
-which does virtually nothing else than `serial_init`.
-So the solution is therefore to replace the bytes `0xc400` at
-position `0x1190` with `0x0c03`, for example as follows:
+which [does virtually nothing else](https://github.com/MediaTek-Labs/linkit-smart-7688-uboot/blob/master/board/rt2880/serial.c#L251) than `serial_init`.
+So the minimally invasive solution is therefore to replace the (little-endian)
+bytes `0xc400` at position `0x1190` with `0x0c03`, for example as follows:
 
 ```
 $ wget http://silenceota.linkplay.com/wifi_audio_image/2ANRu7eyAEYtoo4NZPy9dL/uboot_v632.img

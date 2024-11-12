@@ -35,6 +35,9 @@ The module has an undocumented serial port used as Linux console ttyS1
 [full PCB](c-ap8064-05-amp-pcb-front.jpg)).
 The serial port works with 5V (not 3V3) and 57600 8N1.
 
+:raised_hand: Some (newer) modules do not output anything to the serial port.
+This likely can be fixed by [patching the bootloader](#vendor-bootloader).
+
 :warning: Warning: There are probably [multiple hardware versions](https://github.com/hn/linkplay-a31/issues/4) of the Linkplay A31 module
 (which is weird because they are all labeled "V04"). The versions seem to differ in the voltage used at the serial port (3v3 vs. 5v) and
 even the MCU seems to be slightly different (MT7628  vs. MT7688). This needs to be investigated further.
@@ -44,7 +47,7 @@ even the MCU seems to be slightly different (MT7628  vs. MT7688). This needs to 
 
 ### Vendor firmware
 
-The module uses a patched version of U-Boot 1.1.3 (Ralink UBoot Version 4.3.0.0),
+The module uses a patched (and sometimes [crippled](#vendor-bootloader)) version of U-Boot 1.1.3 (Ralink UBoot Version 4.3.0.0),
 a (MediaTek SDK) patched Linux kernel 2.6.36 and
 a weird combination of proprietary and OSS/GNU operating system components.
 
@@ -205,6 +208,87 @@ so this project uses a possibly confusing (some might call it clever)
 The terms 'emulator' and 'daemon' are a bit exaggerated, the code only
 emulates three serial commands and does not daemonize itself,
 but hey, it works :)
+
+
+### Vendor bootloader
+
+Some (newer) A31 module versions are shipped with a crippled U-Boot bootloader
+which does not output anything to the serial port.
+It seems that the vendor does not want users to modify the software on the device themselves.
+
+According to [Jan21493](https://github.com/Jan21493/)'s
+[research](https://github.com/Jan21493/Linkplay/blob/main/Downgrade.md)
+the most recent bootloader version is
+[uboot_v632.img](http://silenceota.linkplay.com/wifi_audio_image/2ANRu7eyAEYtoo4NZPy9dL/uboot_v632.img).
+
+If you have a look at the
+[source code of a bootloader of a comparable board](https://github.com/MediaTek-Labs/linkit-smart-7688-uboot/blob/master/lib_mips/board.c#L728)
+one can see the following initialization sequence:
+
+```
+timer_init();
+env_init();		/* initialize environment */
+init_baudrate();	/* initialze baudrate settings */
+serial_init();		/* serial communications setup */
+console_init_f();
+```
+
+Since `uboot_v632.img` is distributed without source code,
+a deeper understanding can be obtained by disassembling the binary file
+(function names have been annotated after thorough analysis):
+
+```
+bc001164 10 00 bc 8f     lw       gp,local_40(sp)
+bc001168 84 02 99 8f     lw       t9,0x284(gp)=>->FUN_timer_init_bc004358
+bc00116c 09 f8 20 03     jalr     t9=>FUN_timer_init_bc004358
+bc001170 00 00 00 00     _nop
+bc001174 10 00 bc 8f     lw       gp,local_40(sp)
+bc001178 6c 01 99 8f     lw       t9,0x16c(gp)=>->FUN_env_init_bc011990
+bc00117c 09 f8 20 03     jalr     t9=>FUN_env_init_bc011990
+bc001180 00 00 00 00     _nop
+bc001184 10 00 bc 8f     lw       gp,local_40(sp)
+bc001188 00 e1 02 34     ori      v0,zero,0xe100
+bc00118c 08 00 42 af     sw       v0,local_30(k0)
+bc001190 c4 00 99 8f     lw       t9,0xc4(gp)=>->FUN_console_init_f_bc00f8ec
+bc001194 09 f8 20 03     jalr     t9=>FUN_console_init_f_bc00f8ec
+bc001198 00 00 00 00     _nop
+bc00119c 10 00 bc 8f     lw       gp,local_40(sp)
+bc0011a0 ff df 02 3c     lui      v0,0xdfff
+bc0011a4 ff ff 42 34     ori      v0,v0,0xffff
+bc0011a8 68 00 99 8f     lw       t9,0x68(gp)=>->FUN_dram_cali_bc003b90
+bc0011ac 24 c8 22 03     and      t9,t9,v0
+bc0011b0 09 f8 20 03     jalr     t9=>SUB_9c003b90
+bc0011b4 00 00 00 00     _nop
+```
+
+One quickly can see that the calls to `init_baudrate` and `serial_init` are missing.
+
+An obvious approach would be to replace the jump table call at offset
+`0xc4` to `console_init_f` (this function is not absolutely necessary) with a call of `serial_init`.
+Unfortunately, the jump table does not contain an entry for `serial_init`,
+as this function is intentionally not used by the manufacturer's firmware.
+But fortunately there is an entry for `serial_setbrg` in the jump table at offset `0x30c`,
+which does virtually nothing else than `serial_init`.
+So the solution is therefore to replace the bytes `0xc400` at
+position `0x1190` with `0x0c03`, for example as follows:
+
+```
+$ wget http://silenceota.linkplay.com/wifi_audio_image/2ANRu7eyAEYtoo4NZPy9dL/uboot_v632.img
+$ md5sum uboot_v632.img
+8e0445af74e108eace0c90e849c37723
+$ cp -v uboot_v632.img uboot_v632-patched.img
+'uboot_v632.img' -> 'uboot_v632-patched.img'
+$ echo -n -e "\x0C\x03" | dd seek=4496 bs=1 count=2 conv=notrunc of=uboot_v632-patched.img
+2 bytes copied, 0.000151282 s
+$ md5sum uboot_v632-patched.img
+7c9cbe63d6c0f7f6425eb1c1246d7d0b
+```
+
+The modified firmware can be written to flash memory e.g. by executing
+`mtd_write -w write /tmp/uboot_v632-patched.img Bootloader`
+on the A31 module.
+
+:warning: Warning: Overwriting the bootloader may brick you device. Be careful.
 
 
 # Dyon Area L WiFi speaker

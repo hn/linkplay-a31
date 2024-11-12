@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 #include <signal.h>
 #include <termios.h>
 #include <alsa/asoundlib.h>
@@ -95,7 +96,7 @@ int main() {
 	static const char *snd_card_mixer = SND_CARD_MIXER;
 	static const char *snd_card_status = SND_CARD_STATUS;
 	static const char *mix_name = MIX_NAME;
-	static int mix_index = MIX_INDEX;
+	static const int mix_index = MIX_INDEX;
 
 	snd_ctl_t *ctl;
 	snd_pcm_info_t *pcm_info;

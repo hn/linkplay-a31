@@ -162,7 +162,9 @@ mtd -r write /tmp/openwrt-ramips-mt76x8-linkplay_a31-squashfs-sysupgrade.bin fir
 
 Make sure that the time of the newly installed system is correct, otherwise you won't be able to download HTTPS content due to certificate validity problems.
 
-:bulb: The system sets up a [rescue access point](openwrt-linkplay-a31/files/etc/init.d/rescue-ap)
+#### Rescue access point
+
+When installed to flash, the system sets up a [rescue access point](openwrt-linkplay-a31/files/etc/init.d/rescue-ap)
 if there is no WiFi connectivity (e.g. wrong credentials) three minutes after booting.
 The SSID is `LINKPLAY` and [passphrase](openwrt-linkplay-a31/files/etc/hostapd-rescue.conf) is `A31A31A31`.
 IP address for SSH connection is `192.168.31.1` (no DHCP server, you have to set IP manually on your client).
@@ -297,12 +299,14 @@ There are (at least) two different hardware revisions of this speaker:
 
 ## Series 1: C.8064.01 amplifier board
 
-Series 1 has a rectangular label (8x5 cm) and must be opened from bottom. It consists of a WiiMu A21 WiFi module (MT7620A MCU) and a C.8064.01 amp board.
+Series 1 has a rectangular label (8x5 cm) and can be opened from bottom of the speaker enclosure.
+It consists of a WiiMu A21 WiFi module (MT7620A MCU) and a C.8064.01 amp board.
 No research has yet been undertaken with this model.
 
 ## Series 2: C.AP8064.05 amplifier board
 
-Series 2 has a square label (8x8 cm, with "Serie 2" printed on it) and must be opened from behind, the screws are hidden behind the edges of the label.
+Series 2 has a square label (8x8 cm, with "Serie 2" printed on it) and
+can be opened from the back of the speaker enclosure, the screws are hidden behind the edges of the label.
 
 The WiFi speaker plays a particularly annoying
 welcome message ("Geniesse WiFi Musik" in german) when you

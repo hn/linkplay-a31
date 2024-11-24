@@ -137,10 +137,14 @@ With `fw_printenv` one can list the NVRAM contents of the vendor firmware
 
 #### Installing
 
-There exist various documents on how to backup and flash OpenWrt devices.
-It might even be possible to upload the OpenWrt `sysupgrade.bin` via the
-vendor's firmware update web interface, but this has not been tested
-at all.
+It is recommended to [boot the system via serial](#testing) and
+flash the image from within the running system with
+
+```
+mtd -r write /tmp/openwrt-ramips-mt76x8-linkplay_a31-squashfs-sysupgrade.bin firmware
+```
+
+Make sure that the time of the newly installed system is correct, otherwise you won't be able to download HTTPS content due to certificate validity problems.
 
 :warning: Warning: Make a backup of the flash content before
 overwriting it. No need to say that flashing will void the warranty.
@@ -152,15 +156,6 @@ brick your device.
 :raised_hand: [Flash memory has a limited number of write cycles](https://en.wikipedia.org/wiki/Flash_memory#Memory_wear).
 Avoid unnecessary system upgrades or writing large files
 (always use [tmpfs](https://en.wikipedia.org/wiki/Tmpfs) in /tmp if possible).
-
-It is recommended to [boot the system via serial](#testing) and
-flash the image from within the running system with
-
-```
-mtd -r write /tmp/openwrt-ramips-mt76x8-linkplay_a31-squashfs-sysupgrade.bin firmware
-```
-
-Make sure that the time of the newly installed system is correct, otherwise you won't be able to download HTTPS content due to certificate validity problems.
 
 #### Rescue access point
 
@@ -191,12 +186,13 @@ However, the vendor has taken some precautions to ensure that only files in a ce
 
 [openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin](openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin)
 is a firmware file that fulfills these requirements by patching the kernel and various headers and inserting some padding.
-This allows it to be flashed via the manufacturer's web interface.
+This allows it to be flashed via the devices's web interface.
 Use the [rescue access point](#rescue-access-point) to access the system after web flashing.
 
 :warning: Warning: Overwriting the firmware may brick you device.
 It is strongly recommended to [flash via the serial port](#installing) because the
 web firmware file has only been tested once on a single board.
+And if you use the Web Updater, you do not have the option of creating a backup copy of the vendor software.
 
 If you want to rebuild the web firmware image, you have to pass
 the `-fw` option to the [prepare-openwrt-a31.sh](openwrt-linkplay-a31/prepare-openwrt-a31.sh) script.

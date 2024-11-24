@@ -163,7 +163,7 @@
 };
 
 &ethernet {
-	nvmem-cells = <&macaddr_factory_2e>;
+	nvmem-cells = <&macaddr_factory_eth_2e>;
 	nvmem-cell-names = "mac-address";
 };
 
@@ -178,7 +178,13 @@
 	#address-cells = <1>;
 	#size-cells = <1>;
 
-	macaddr_factory_2e: macaddr@2e {
+	macaddr_factory_wifi_4: macaddr@4 {
+		reg = <0x4 0x6>;
+	};
+	macaddr_factory_wifi_28: macaddr@28 {
+		reg = <0x28 0x6>;
+	};
+	macaddr_factory_eth_2e: macaddr@2e {
 		reg = <0x2e 0x6>;
 	};
 };

@@ -181,6 +181,26 @@ While it is possible to install additional software, many packages (e.g. [gmrend
 I suggest to install [mpd-mini](https://openwrt.org/packages/pkgdata/mpd-mini) (config [diff here](openwrt-linkplay-a31/mpd-config.diff), and you have to add user 'mpd' to the 'audio' group).
 HTTPS-streams seem to overload the cpu and tend to be unstable.
 
+#### Web firmware updater
+
+The vendor's web interface offers the option of uploading a binary firmware update to the device.
+However, the vendor has taken some precautions to ensure that only files in a certain format are accepted:
+- The operating system (OS) identifier in the uImage kernel header must be set to 'SVR4' instead of the standard 'Linux'.
+- The root filesystem has to be wrapped into an uImage as well (unlike OpenWrt does this).
+- Various length checks are enforced.
+
+[openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin](openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin)
+is a firmware file that fulfills these requirements by patching the kernel and various headers and inserting some padding.
+This allows it to be flashed via the manufacturer's web interface.
+Use the [rescue access point](#rescue-access-point) to access the system after web flashing.
+
+:warning: Warning: Overwriting the firmware may brick you device.
+It is strongly recommended to [flash via the serial port](#installing) because the
+web firmware file has only been tested once on a single board.
+
+If you want to rebuild the web firmware image, you have to pass
+the `-fw` option to the [prepare-openwrt-a31.sh](openwrt-linkplay-a31/prepare-openwrt-a31.sh) script.
+
 
 ### Amplifier control app
 

@@ -32,3 +32,8 @@ patch -p1 < $SCRIPT_DIR/shairport-sync-config.diff
 # System config
 cp -v -r -n $SCRIPT_DIR/files/ ./
 
+# Additionally generate web firmware
+if [ "$1" = "-fw" ]; then
+	cp -v -n $SCRIPT_DIR/842-linkplay-os-workaround.patch ./target/linux/ramips/patches-5*/
+	patch -p1 < $SCRIPT_DIR/linkplay-firmware-bin.diff
+fi

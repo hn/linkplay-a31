@@ -1,0 +1,15 @@
+The Linkplay web firmware updater only accepts images with the
+operating system (intentionally incorrectly) set to SVR4.
+
+--- a/drivers/mtd/mtdsplit/mtdsplit_uimage.c
++++ b/drivers/mtd/mtdsplit/mtdsplit_uimage.c
+@@ -95,7 +95,8 @@
+ 		return -EINVAL;
+ 	}
+ 
+-	if (header->ih_os != IH_OS_LINUX) {
++	/* workaround - Linkplay firmware only accepts SVR4 uImages */
++	if ((header->ih_os != IH_OS_LINUX) && (header->ih_os != IH_OS_SVR4)) {
+ 		pr_debug("invalid uImage OS: %08x != %08x\n",
+ 			 be32_to_cpu(header->ih_os), IH_OS_LINUX);
+ 		return -EINVAL;

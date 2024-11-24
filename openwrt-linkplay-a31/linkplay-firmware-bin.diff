@@ -1,0 +1,50 @@
+diff --git a/target/linux/ramips/image/mt76x8.mk b/target/linux/ramips/image/mt76x8.mk
+index ea00e53b17..d6b485bdf4 100644
+--- a/target/linux/ramips/image/mt76x8.mk
++++ b/target/linux/ramips/image/mt76x8.mk
+@@ -28,6 +28,22 @@ define Build/ravpower-wd009-factory
+ 	@mv $@.new $@
+ endef
+ 
++define Build/append-linkplay-rootfs
++	let \
++		size="$$(stat -c%s $@)" \
++		pad="((((size + 128 * 1024 - 1) / (128 * 1024)) * 128 * 1024) - 64 - size)" ; \
++		dd if=/dev/zero bs=$$pad count=1 of=$@.pad
++	cat $(IMAGE_ROOTFS) >> $@.pad
++	$(STAGING_DIR_HOST)/bin/mkimage \
++		-A $(LINUX_KARCH) \
++		-O $(if $(UIMAGE_OS),$(UIMAGE_OS),linux) \
++		-T filesystem -C none \
++		$(if $(UIMAGE_MAGIC),-M $(UIMAGE_MAGIC)) \
++		-n '$(VERSION_DIST) filesystem' \
++		-d $@.pad $@.fs
++	cat $@.fs >> $@
++	rm -rf $@.fs $@.pad
++endef
+ 
+ define Device/alfa-network_awusfree1
+   IMAGE_SIZE := 7872k
+@@ -369,6 +385,9 @@ TARGET_DEVICES += kroks_kndrt31r19
+ 
+ define Device/linkplay_a31
+   IMAGE_SIZE := 7872k
++  UIMAGE_OS := SVR4
++  IMAGES += firmware.bin
++  IMAGE/firmware.bin := append-kernel | append-linkplay-rootfs
+   DEVICE_VENDOR := Linkplay
+   DEVICE_MODEL := A31
+   DEVICE_VARIANT := V40
+diff --git a/include/image-commands.mk b/include/image-commands.mk
+index 12cbbb2c2c..0d425b643b 100644
+--- a/include/image-commands.mk
++++ b/include/image-commands.mk
+@@ -628,7 +628,7 @@ define Build/uImage
+ 	$(if $(UIMAGE_TIME),SOURCE_DATE_EPOCH="$(UIMAGE_TIME)") \
+ 	mkimage \
+ 		-A $(LINUX_KARCH) \
+-		-O linux \
++		-O $(if $(UIMAGE_OS),$(UIMAGE_OS),linux) \
+ 		-T kernel \
+ 		-C $(word 1,$(1)) \
+ 		-a $(KERNEL_LOADADDR) \

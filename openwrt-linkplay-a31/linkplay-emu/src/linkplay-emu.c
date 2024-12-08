@@ -45,14 +45,30 @@
 #include <signal.h>
 #include <termios.h>
 #include <alsa/asoundlib.h>
+#include <syslog.h>
+
+unsigned int hastty;
 
 volatile sig_atomic_t exitplease = 0;
+
+void log_line(int prio, const char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	if (hastty) {
+		vfprintf(stderr, fmt, args);
+		fprintf(stderr, "\n");
+	} else {
+		if (prio < LOG_DEBUG)
+			vsyslog(prio, fmt, args);
+	}
+	va_end(args);
+}
 
 void sig_handler(int signum) {
 	exitplease = 1;
 }
 
-int set_interface_attribs(int fd, int speed) {
+int serial_interface_attribs(int fd, int speed) {
 	struct termios tty;
 
 	if (tcgetattr(fd, &tty) < 0)
@@ -84,10 +100,28 @@ int set_interface_attribs(int fd, int speed) {
 	return 0;
 }
 
-int write_serial(int fd, char *data) {
-	unsigned int len = strlen(data);
-	printf("> %s", data);
-	return (write(fd, data, len) != len);
+ssize_t serial_writeln(int fd, char *data) {
+	size_t len = strlen(data);
+	log_line(LOG_INFO, "UART> %s", data);
+	ssize_t n = write(fd, data, len);
+	n += write(fd, "\n", 1); /* sum is dirty */
+	return n;
+}
+
+ssize_t serial_read(int fd) {
+	char buf[100];
+	ssize_t n = read(fd, buf, sizeof buf - 1);
+	if (n > 0) {
+		/* strip non-printables except CRLF */
+		for (unsigned int i = 0; i < n; i++) {
+			if (buf[i] != 10 && buf[i] != 13
+			  && (buf[i] < 32 || buf[i] > 127))
+			    buf[i] = '.';
+		}
+		buf[n] = 0;
+		log_line(LOG_INFO, "UART< %s", buf);
+	}
+	return n;
 }
 
 int main() {
@@ -111,26 +145,31 @@ int main() {
 	unsigned int pcm_lastvol = 0;
 	time_t pcm_lastplaying = 0;
 	long vol_min, vol_max;
+	unsigned int vol_multi = 0;
+
+	hastty = !!ttyname(0);
+
+	if (!hastty) openlog("linkplay-emu", LOG_PID, LOG_DAEMON);
 
 	signal(SIGTERM, sig_handler);
 
-	serial_fd = open(serial_name, O_RDWR | O_NOCTTY | O_SYNC);
+	serial_fd = open(serial_name, O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
 	if (serial_fd < 0) {
-		fprintf(stderr,
-			"Failed to open serial port '%s': %s\n", serial_name,
+		log_line(LOG_ERR,
+			"Failed to open serial port '%s': %s", serial_name,
 			strerror(errno));
 		goto fail;
 	}
-	err = set_interface_attribs(serial_fd, B57600);
+	err = serial_interface_attribs(serial_fd, B57600);
 	if (err < 0) {
-		fprintf(stderr, "Failed to set serial port attribs\n");
+		log_line(LOG_ERR, "Failed to set serial port attribs");
 		goto fail_cs;
 	}
 
 	err = snd_ctl_open(&ctl, snd_card_status, SND_CTL_READONLY);
 	if (err < 0) {
-		fprintf(stderr,
-			"Failed to open audio control device '%s': %s\n",
+		log_line(LOG_ERR,
+			"Failed to open audio control device '%s': %s",
 			snd_card_status, snd_strerror(err));
 		goto fail_cs;
 	}
@@ -141,63 +180,72 @@ int main() {
 
 	err = snd_mixer_open(&mix_handle, 0);
 	if (err < 0) {
-		fprintf(stderr, "Failed to open mixer: %s\n",
+		log_line(LOG_ERR, "Failed to open mixer: %s",
 			snd_strerror(err));
 		goto fail_cc;
 	}
 	err = snd_mixer_attach(mix_handle, snd_card_mixer);
 	if (err < 0) {
-		fprintf(stderr, "Failed to attach mixer: %s\n",
+		log_line(LOG_ERR, "Failed to attach mixer: %s",
 			snd_strerror(err));
 		goto fail_mc;
 	}
 	err = snd_mixer_selem_register(mix_handle, NULL, NULL);
 	if (err < 0) {
-		fprintf(stderr,
-			"Failed to register simple element class handle: %s\n",
+		log_line(LOG_ERR,
+			"Failed to register simple element class handle: %s",
 			snd_strerror(err));
 		goto fail_mc;
 	}
 	err = snd_mixer_load(mix_handle);
 	if (err < 0) {
-		fprintf(stderr,
-			"Failed to load mixer elements: %s\n",
+		log_line(LOG_ERR,
+			"Failed to load mixer elements: %s",
 			snd_strerror(err));
 		goto fail_mc;
 	}
 	mix_elem = snd_mixer_find_selem(mix_handle, mix_sid);
 	if (!mix_elem) {
-		fprintf(stderr,
-			"Failed to findle mixer simple element: %s\n",
+		log_line(LOG_ERR,
+			"Failed to findle mixer simple element: %s",
 			snd_strerror(err));
 		goto fail_mc;
 	}
 
 	err = snd_pcm_info_malloc(&pcm_info);
 	if (err < 0) {
-		fprintf(stderr,
-			"Failed to malloc pcm info: %s\n", snd_strerror(err));
+		log_line(LOG_ERR,
+			"Failed to malloc pcm info: %s", snd_strerror(err));
 		goto fail_mc;
 	}
 
 	snd_mixer_selem_get_playback_volume_range(mix_elem, &vol_min, &vol_max);
 
-	/* Initialize DAC (set source) */
-	write_serial(serial_fd, "AXX+PLM+001\n");
+	/* Set MCU ready state */
+	serial_writeln(serial_fd, "AXX+MCU+RDY");
 
+	/* Get MCU version */
+	serial_writeln(serial_fd, "AXX+MCU+VER");
+
+	/* Initialize DAC (set source) */
+	serial_writeln(serial_fd, "AXX+PLM+001");
+
+	log_line(LOG_INFO, "Daemon started successfully");
 	while (!exitplease) {
 		long vol_now;
 		unsigned int vol_cal;
 		unsigned int pcm_isplaying;
 
-		snd_mixer_wait(mix_handle, 1000);
+		serial_read(serial_fd);
+
+		snd_mixer_wait(mix_handle, 500);
 		snd_mixer_handle_events(mix_handle);	/* https://www.raspberrypi.org/forums/viewtopic.php?t=175511 */
 
 		err =
 		    snd_mixer_selem_get_playback_volume(mix_elem, 0, &vol_now);
 		if (err < 0) {
-			fprintf(stderr,
-				"Failed to get audio playback volume: %s\n",
+			log_line(LOG_ERR,
+				"Failed to get audio playback volume: %s",
 				snd_strerror(err));
 			goto fail_pif;
 		}
@@ -212,8 +260,8 @@ int main() {
 
 		err = snd_ctl_pcm_info(ctl, pcm_info);
 		if (err < 0) {
-			fprintf(stderr,
-				"Failed to get audio device info: %s\n",
+			log_line(LOG_ERR,
+				"Failed to get audio device info: %s",
 				snd_strerror(err));
 			goto fail_pif;
 		}
@@ -229,36 +277,39 @@ int main() {
 		if (!pcm_ismuted
 		    && ((time(NULL) - pcm_lastplaying) > AXX_IDLETIME)) {
 			/* Mute DAC */
-			write_serial(serial_fd, "AXX+PLY+000\n");
-			write_serial(serial_fd, "AXX+MUT+001\n");
+			serial_writeln(serial_fd, "AXX+PLY+000");
+			serial_writeln(serial_fd, "AXX+MUT+001");
 			pcm_ismuted = 1;
+			pcm_lastvol = 0;
 		}
 
 		if (pcm_ismuted && pcm_isplaying) {
 			/* Unmute DAC */
-			write_serial(serial_fd, "AXX+MUT+000\n");
-			write_serial(serial_fd, "AXX+PLY+001\n");
+			serial_writeln(serial_fd, "AXX+MUT+000");
+			serial_writeln(serial_fd, "AXX+PLY+001");
 			pcm_ismuted = 0;
+			vol_multi = 3;	/* set volume multiple times after mute */
 		}
 
-		if (!pcm_ismuted && (pcm_lastvol != vol_cal)) {
+		if (vol_multi || (!pcm_ismuted && (pcm_lastvol != vol_cal))) {
 			/* Set DAC volume */
 			char out[12 + 1];
-			sprintf(out, "AXX+VOL+%03d\n", vol_cal);
-			write_serial(serial_fd, out);
+			sprintf(out, "AXX+VOL+%03d", vol_cal);
+			serial_writeln(serial_fd, out);
 			pcm_lastvol = vol_cal;
+			if (vol_multi) vol_multi--;
 		}
-#ifdef DEBUG
-		printf
-		    ("vol_now=%ld (%ld - %ld), vol_cal=%d, isplaying=%d, ismuted=%d\n",
+
+		log_line(LOG_DEBUG,
+		     "vol_now=%ld (%ld - %ld), vol_cal=%d, isplaying=%d, ismuted=%d",
 		     vol_now, vol_min, vol_max, vol_cal, pcm_isplaying,
 		     pcm_ismuted);
-#endif
+
 	}
 
 	/* Mute DAC */
-	write_serial(serial_fd, "AXX+PLY+000\n");
-	write_serial(serial_fd, "AXX+MUT+001\n");
+	serial_writeln(serial_fd, "AXX+PLY+000");
+	serial_writeln(serial_fd, "AXX+MUT+001");
 	ret = 0;
 
  fail_pif:
@@ -270,6 +321,7 @@ int main() {
  fail_cs:
 	close(serial_fd);
  fail:
+ 	if (!hastty) closelog();
 	return ret;
 
 }

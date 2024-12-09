@@ -43,9 +43,9 @@
 #include <stdint.h>
 #include <math.h>
 #include <signal.h>
+#include <syslog.h>
 #include <termios.h>
 #include <alsa/asoundlib.h>
-#include <syslog.h>
 
 unsigned int hastty;
 
@@ -230,7 +230,8 @@ int main() {
 	/* Initialize DAC (set source) */
 	serial_writeln(serial_fd, "AXX+PLM+001");
 
-	log_line(LOG_INFO, "Daemon started successfully");
+	log_line(LOG_INFO, "Daemon (compiled on %s) started successfully", __TIMESTAMP__);
+
 	while (!exitplease) {
 		long vol_now;
 		unsigned int vol_cal;
@@ -321,7 +322,7 @@ int main() {
  fail_cs:
 	close(serial_fd);
  fail:
- 	if (!hastty) closelog();
+	if (!hastty) closelog();
 	return ret;
 
 }

@@ -185,7 +185,7 @@ However, the vendor has taken some precautions to ensure that only files in a ce
 - Various length checks are enforced.
 
 [openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin](openwrt-ramips-mt76x8-linkplay_a31-squashfs-firmware.bin)
-is a firmware file that fulfills these requirements by patching the kernel and various headers and inserting some padding.
+is a firmware file that fulfills these requirements by [patching the kernel and various headers and inserting some padding](openwrt-linkplay-a31/linkplay-firmware-bin.diff).
 This allows it to be flashed via the devices's web interface.
 Use the [rescue access point](#rescue-access-point) to access the system after web flashing.
 
